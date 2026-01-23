@@ -1,0 +1,2115 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Formulario de Colecta</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        .gradient-bg {
+            background: linear-gradient(135deg, #0f172a 0%, #581c87 50%, #0f172a 100%);
+        }
+
+        .card-glass {
+            background: rgba(30, 41, 59, 0.5);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(168, 85, 247, 0.2);
+        }
+
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        input[type="number"] {
+            -moz-appearance: textfield;
+        }
+
+        /* Estilos para el modal */
+        #machineModal {
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        /* Estilos para el modal */
+        #machineModal {
+            animation: fadeIn 0.3s ease;
+        }
+
+        #machineModal.fade-out {
+            animation: fadeOut 0.2s ease forwards;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes fadeOut {
+            from {
+                opacity: 1;
+            }
+
+            to {
+                opacity: 0;
+            }
+        }
+
+        /* Mejorar la legibilidad del modal */
+        #machineModal .card-glass {
+            background: rgba(30, 41, 59, 0.8);
+            backdrop-filter: blur(20px);
+        }
+
+        /* Estilos para notificaciones */
+        .notification-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 99999;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-width: 320px;
+        }
+
+        .notification {
+            background: rgba(30, 41, 59, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(168, 85, 247, 0.3);
+            border-radius: 12px;
+            padding: 16px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+            transform: translateX(400px);
+            opacity: 0;
+            transition: transform 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55), opacity 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+            opacity: 1;
+        }
+
+        .notification.hide {
+            transform: translateX(400px);
+            opacity: 0;
+        }
+
+        .notification::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: linear-gradient(to bottom, #8b5cf6, #ec4899);
+        }
+
+        .notification-success::before {
+            background: linear-gradient(to bottom, #10b981, #34d399);
+        }
+
+        .notification-error::before {
+            background: linear-gradient(to bottom, #ef4444, #f87171);
+        }
+
+        .notification-warning::before {
+            background: linear-gradient(to bottom, #f59e0b, #fbbf24);
+        }
+
+        .notification-info::before {
+            background: linear-gradient(to bottom, #3b82f6, #60a5fa);
+        }
+
+        .notification-content {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+        }
+
+        .notification-icon {
+            flex-shrink: 0;
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+
+        .notification-success .notification-icon {
+            background: rgba(16, 185, 129, 0.2);
+            color: #10b981;
+        }
+
+        .notification-error .notification-icon {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+        }
+
+        .notification-warning .notification-icon {
+            background: rgba(245, 158, 11, 0.2);
+            color: #f59e0b;
+        }
+
+        .notification-info .notification-icon {
+            background: rgba(59, 130, 246, 0.2);
+            color: #3b82f6;
+        }
+
+        .notification-text {
+            flex: 1;
+        }
+
+        .notification-title {
+            font-weight: 700;
+            color: white;
+            font-size: 14px;
+            margin-bottom: 4px;
+        }
+
+        .notification-message {
+            color: #cbd5e1;
+            font-size: 13px;
+            line-height: 1.4;
+        }
+
+        .notification-close {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            background: none;
+            border: none;
+            color: #94a3b8;
+            cursor: pointer;
+            font-size: 16px;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            transition: all 0.2s;
+        }
+
+        .notification-close:hover {
+            color: white;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .notification-progress {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .notification-progress-bar {
+            height: 100%;
+            width: 100%;
+            background: linear-gradient(to right, #8b5cf6, #ec4899);
+            transform-origin: left;
+            transform: scaleX(1);
+            transition: transform linear;
+        }
+
+        .notification-success .notification-progress-bar {
+            background: linear-gradient(to right, #10b981, #34d399);
+        }
+
+        .notification-error .notification-progress-bar {
+            background: linear-gradient(to right, #ef4444, #f87171);
+        }
+
+        .notification-warning .notification-progress-bar {
+            background: linear-gradient(to right, #f59e0b, #fbbf24);
+        }
+
+        .notification-info .notification-progress-bar {
+            background: linear-gradient(to right, #3b82f6, #60a5fa);
+        }
+
+        /* Agrega esto al <style> */
+        html {
+            scroll-behavior: smooth;
+        }
+
+        /* Estilo adicional para cuando el campo estado tiene foco */
+        #estado:focus {
+            box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.3);
+        }
+    </style>
+</head>
+
+<body class="gradient-bg min-h-screen p-4">
+
+    <!-- Header con Empresa y Botones - Layout en columnas -->
+    <div class="max-w-4xl mx-auto mb-4">
+        <div class="card-glass rounded-xl p-3 shadow-xl">
+            <div class="grid grid-cols-3 gap-4 items-center">
+                <!-- Columna 1: Nombre empresa -->
+                <div class="col-span-2 min-w-0">
+                    <h3 class="text-base font-bold text-white truncate mb-0.5">LORENS GAMING S.A</h3>
+                    <div class="flex flex-wrap gap-x-3 gap-y-0.5">
+                        <p class="text-xs text-purple-300 whitespace-nowrap">RUC: 1813975-1-707784 DV 54</p>
+                        <p class="text-xs text-slate-400 whitespace-nowrap">Sistema de Colecta - v1.0</p>
+                    </div>
+                </div>
+
+                <!-- Columna 2: Botones -->
+                <div class="flex justify-end">
+                    <div class="flex gap-1">
+                        <button id="btnGastos"
+                            class="w-9 h-9 bg-gradient-to-br from-orange-500 to-red-500 text-white font-bold rounded-lg hover:from-orange-600 hover:to-red-600 transition-all shadow flex items-center justify-center hover:scale-105 active:scale-95 group"
+                            title="Registrar Gastos/Abonos/Depósitos">
+                            <svg class="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                                xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <span
+                                class="absolute -top-7 right-0 bg-slate-800 text-xs text-white px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                                Gastos/Abonos/Depósitos
+                            </span>
+                        </button>
+
+                        <button id="btnAdd"
+                            class="w-9 h-9 bg-gradient-to-br from-blue-500 to-cyan-500 text-white font-bold rounded-lg hover:from-blue-600 hover:to-cyan-600 transition-all shadow flex items-center justify-center hover:scale-105 active:scale-95 group"
+                            title="Agregar Máquinas">
+                            <svg class="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                            </svg>
+                            <span
+                                class="absolute -top-7 left-0 bg-slate-800 text-xs text-white px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                                Agregar Máquinas
+                            </span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Container de Máquinas -->
+    <div class="max-w-4xl mx-auto space-y-3" id="machinesContainer"></div>
+
+    <!-- Resumen Total -->
+    <div class="max-w-4xl mx-auto mt-4">
+        <div class="card-glass rounded-xl p-4 shadow-xl">
+
+            <!-- Elementos ocultos para cálculos (necesarios para JavaScript) -->
+            <div style="display: none;">
+                <span id="totalEntradas">$0</span>
+                <span id="totalPagos">$0</span>
+            </div>
+
+            <!-- Impuesto y Devolución -->
+            <div class="grid grid-cols-2 gap-3 mb-3">
+                <!-- Impuesto JCJ -->
+                <div class="bg-slate-800 bg-opacity-50 rounded-lg p-3 border border-purple-500 border-opacity-20">
+                    <div class="flex justify-between items-center mb-2">
+                        <label class="text-xs font-medium text-purple-300">IMP. JCJ</label>
+                        <span class="text-xs text-slate-400">Total:</span>
+                    </div>
+
+                    <!-- Fila 1: Valor y cantidad -->
+                    <div class="flex items-center gap-1 mb-2">
+                        <div class="flex-1">
+                            <p class="text-xs text-slate-400 mb-1">Valor</p>
+                            <input type="number" id="impuestoPorMaquina"
+                                class="w-full bg-slate-700 border border-purple-500 border-opacity-30 rounded px-2 py-1.5 text-white text-center font-bold focus:outline-none focus:border-purple-500 text-sm"
+                                value="0" placeholder="0.00" step="0.01">
+                        </div>
+                        <div class="text-center pt-3">
+                            <span class="text-white text-md">×</span>
+                        </div>
+                        <div class="flex-1">
+                            <p class="text-xs text-slate-400 mb-1">Cant.</p>
+                            <input type="number" id="multiplicadorImpuesto"
+                                class="w-full bg-slate-800 border border-blue-500 border-opacity-30 rounded px-2 py-1.5 text-white text-center font-bold focus:outline-none focus:border-blue-500 text-sm"
+                                value="1" min="1">
+                        </div>
+                    </div>
+
+                    <!-- Fila 2: Total -->
+                    <div>
+                        <input type="number" id="impuestoJCJ" readonly
+                            class="w-full bg-slate-900 border border-green-500 border-opacity-30 rounded px-2 py-1.5 text-green-400 text-center font-bold text-sm"
+                            value="0">
+                    </div>
+                </div>
+
+                <!-- Devolución -->
+                <div class="bg-slate-800 bg-opacity-50 rounded-lg p-3 border border-purple-500 border-opacity-20">
+                    <div class="flex justify-between items-center mb-2">
+                        <label class="text-xs font-medium text-purple-300">DEVOLUCIÓN</label>
+                        <span class="text-xs text-slate-400">Total:</span>
+                    </div>
+
+                    <!-- Fila 1: Valor y cantidad -->
+                    <div class="flex items-center gap-1 mb-2">
+                        <div class="flex-1">
+                            <p class="text-xs text-slate-400 mb-1">Valor</p>
+                            <input type="number" id="devolucionPorMaquina"
+                                class="w-full bg-slate-700 border border-purple-500 border-opacity-30 rounded px-2 py-1.5 text-white text-center font-bold focus:outline-none focus:border-purple-500 text-sm"
+                                value="0" placeholder="0.00" step="0.01">
+                        </div>
+                        <div class="text-center pt-3">
+                            <span class="text-white text-md">×</span>
+                        </div>
+                        <div class="flex-1">
+                            <p class="text-xs text-slate-400 mb-1">Cant.</p>
+                            <input type="number" id="multiplicadorDevolucion"
+                                class="w-full bg-slate-800 border border-blue-500 border-opacity-30 rounded px-2 py-1.5 text-white text-center font-bold focus:outline-none focus:border-blue-500 text-sm"
+                                value="1" min="1">
+                        </div>
+                    </div>
+
+                    <!-- Fila 2: Total -->
+                    <div>
+                        <input type="number" id="devolucion" readonly
+                            class="w-full bg-slate-900 border border-green-500 border-opacity-30 rounded px-2 py-1.5 text-green-400 text-center font-bold text-sm"
+                            value="0">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Fallas y Premios Pendientes -->
+            <div class="grid grid-cols-2 gap-3 mb-3">
+                <div class="bg-slate-800 bg-opacity-50 rounded-lg p-3 border border-purple-500 border-opacity-20">
+                    <label class="block text-xs font-medium text-purple-300 mb-2">FALLAS O PRUEBAS</label>
+                    <input type="number" id="fallasOPruebas"
+                        class="w-full bg-slate-700 border border-purple-500 border-opacity-30 rounded px-2 py-1.5 text-white text-center font-bold focus:outline-none focus:border-purple-500 text-sm"
+                        value="0" placeholder="0">
+                </div>
+                <div class="bg-slate-800 bg-opacity-50 rounded-lg p-3 border border-purple-500 border-opacity-20">
+                    <label class="block text-xs font-medium text-purple-300 mb-2">PREMIOS PENDIENTES</label>
+                    <input type="number" id="premiosPendientes"
+                        class="w-full bg-slate-700 border border-purple-500 border-opacity-30 rounded px-2 py-1.5 text-white text-center font-bold focus:outline-none focus:border-purple-500 text-sm"
+                        value="0" placeholder="0">
+                </div>
+            </div>
+
+            <!-- Observaciones -->
+            <div class="mb-3"><label class="block text-xs font-medium text-purple-300 mb-1">OBSERVACIONES:</label>
+                <textarea id="observaciones"
+                    class="w-full bg-slate-700 border border-purple-500 border-opacity-30 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-purple-500 h-16 resize-none"
+                    placeholder="Notas adicionales..."></textarea>
+            </div>
+
+            <!-- Estado -->
+            <div class="mb-3">
+                <label class="block text-xs font-medium text-purple-300 mb-1">ESTADO:</label>
+                <div class="relative">
+                    <input type="text" id="estado" readonly
+                        class="w-full bg-slate-700 border border-purple-500 border-opacity-30 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500 focus:ring-opacity-50 transition-all duration-300 placeholder:text-slate-500"
+                        placeholder="Estado del envío a la nube...">
+                    <div class="absolute inset-y-0 right-3 flex items-center pointer-events-none">
+                        <span class="text-xs text-slate-400 transition-all duration-300" id="estadoIcon">📡</span>
+                    </div>
+                </div>
+                <p class="text-xs text-slate-500 mt-1">Se actualizará al guardar</p>
+            </div>
+            <!-- Botón MAS -->
+            <div class="mb-3">
+                <button id="btnMas" type="button"
+                    class="w-full bg-slate-700 border border-purple-500 border-opacity-30 rounded-lg px-3 py-2 text-white font-semibold hover:bg-slate-600 transition-all flex items-center justify-between">
+                    <span id="masLabel">MAS:</span>
+                    <svg id="masArrow" class="w-5 h-5 transition-transform" fill="none" stroke="currentColor"
+                        viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                    </svg>
+                </button>
+
+                <!-- Contenedor para opciones seleccionadas (siempre visible si hay selecciones) -->
+                <div id="masSeleccionadas" class="hidden mt-2 space-y-2">
+                    <!-- Las opciones seleccionadas se agregarán aquí dinámicamente -->
+                </div>
+
+                <!-- Contenedor para TODAS las opciones (solo visible al hacer clic en MAS) -->
+                <div id="masTodasOpciones" class="hidden mt-2 space-y-2">
+                    <!-- ABONO -->
+                    <div class="mas-option-group" data-option="abono">
+                        <label
+                            class="flex items-center gap-2 bg-slate-700 bg-opacity-50 rounded-lg p-2 cursor-pointer hover:bg-opacity-70 transition-all">
+                            <input type="checkbox" class="w-4 h-4 mas-option-checkbox" data-option="abono">
+                            <span class="text-sm text-white font-medium">ABONO</span>
+                        </label>
+                    </div>
+
+                    <!-- DIF% -->
+                    <div class="mas-option-group" data-option="dif">
+                        <label
+                            class="flex items-center gap-2 bg-slate-700 bg-opacity-50 rounded-lg p-2 cursor-pointer hover:bg-opacity-70 transition-all">
+                            <input type="checkbox" class="w-4 h-4 mas-option-checkbox" data-option="dif">
+                            <span class="text-sm text-white font-medium">DIF%</span>
+                        </label>
+                    </div>
+
+                    <!-- DEPOSITO -->
+                    <div class="mas-option-group" data-option="deposito">
+                        <label
+                            class="flex items-center gap-2 bg-slate-700 bg-opacity-50 rounded-lg p-2 cursor-pointer hover:bg-opacity-70 transition-all">
+                            <input type="checkbox" class="w-4 h-4 mas-option-checkbox" data-option="deposito">
+                            <span class="text-sm text-white font-medium">DEPOSITO</span>
+                        </label>
+                    </div>
+
+                    <!-- PENDIENTE -->
+                    <div class="mas-option-group" data-option="pendiente">
+                        <label
+                            class="flex items-center gap-2 bg-slate-700 bg-opacity-50 rounded-lg p-2 cursor-pointer hover:bg-opacity-70 transition-all">
+                            <input type="checkbox" class="w-4 h-4 mas-option-checkbox" data-option="pendiente">
+                            <span class="text-sm text-white font-medium">PENDIENTE</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Inputs de las opciones MAS - Diseño uniforme -->
+            <div id="optionAbono" class="hidden mb-3">
+                <div class="bg-slate-800 bg-opacity-50 rounded-lg p-3 border border-purple-500 border-opacity-20">
+                    <label class="block text-xs font-medium text-purple-300 mb-2">ABONO</label>
+                    <input type="number" id="abono"
+                        class="w-full bg-slate-700 border border-purple-500 border-opacity-30 rounded px-2 py-1.5 text-white text-center font-bold focus:outline-none focus:border-purple-500 text-sm"
+                        value="0" placeholder="Monto">
+                </div>
+            </div>
+
+            <div id="optionDif" class="hidden mb-3">
+                <div class="bg-slate-800 bg-opacity-50 rounded-lg p-3 border border-purple-500 border-opacity-20">
+                    <label class="block text-xs font-medium text-purple-300 mb-2">DIF%</label>
+                    <input type="number" id="difPorcentaje"
+                        class="w-full bg-slate-700 border border-purple-500 border-opacity-30 rounded px-2 py-1.5 text-white text-center font-bold focus:outline-none focus:border-purple-500 text-sm"
+                        value="0" placeholder="Porcentaje">
+                </div>
+            </div>
+
+            <div id="optionDeposito" class="hidden mb-3">
+                <div class="bg-slate-800 bg-opacity-50 rounded-lg p-3 border border-purple-500 border-opacity-20">
+                    <label class="block text-xs font-medium text-purple-300 mb-2">DEPÓSITO</label>
+                    <input type="number" id="deposito"
+                        class="w-full bg-slate-700 border border-purple-500 border-opacity-30 rounded px-2 py-1.5 text-white text-center font-bold focus:outline-none focus:border-purple-500 text-sm"
+                        value="0" placeholder="Monto">
+                </div>
+            </div>
+
+            <div id="optionPendiente" class="hidden mb-3">
+                <div class="bg-slate-800 bg-opacity-50 rounded-lg p-3 border border-purple-500 border-opacity-20">
+                    <label class="block text-xs font-medium text-purple-300 mb-2">PENDIENTE</label>
+                    <input type="number" id="pendiente"
+                        class="w-full bg-slate-700 border border-purple-500 border-opacity-30 rounded px-2 py-1.5 text-white text-center font-bold focus:outline-none focus:border-purple-500 text-sm"
+                        value="0" placeholder="Monto">
+                </div>
+            </div>
+            <!-- Resultados Finales -->
+            <div
+                class="bg-slate-800 bg-opacity-50 rounded-lg p-3 mb-3 space-y-2 border border-purple-500 border-opacity-20">
+                <!-- Título Resumen Total con estilo especial -->
+                <div class="bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg p-2 mb-3 text-center">
+                    <h3 class="text-lg font-bold text-white">RESUMEN TOTAL</h3>
+                </div>
+                <div class="flex justify-between text-sm"><span class="text-slate-300">COLECTADO:</span><span
+                        class="text-white font-bold" id="colectado">0</span></div>
+                <div class="flex justify-between text-sm"><span class="text-slate-300">PREMIOS:</span><span
+                        class="text-white font-bold" id="premios">0</span></div>
+                <div class="flex justify-between text-sm"><span class="text-slate-300">RETENCIÓN 5.5%:</span><span
+                        class="text-white font-bold" id="retencion">0</span></div>
+                <div class="flex justify-between text-sm"><span class="text-slate-300">PREMIOS NETO:</span><span
+                        class="text-red-400 font-bold" id="premiosNeto">0</span></div>
+                <div class="flex justify-between text-sm"><span class="text-slate-300">IMPUESTO JCJ:</span><span
+                        class="text-white font-bold" id="impuestoDisplay">0</span></div>
+                <div class="flex justify-between text-sm"><span class="text-slate-300">DEVOLUCIÓN:</span><span
+                        class="text-white font-bold" id="devolucionDisplay">0</span></div>
+                <div class="flex justify-between text-sm border-t border-slate-600 pt-2"><span class="text-slate-300">A
+                        REPARTIR:</span><span class="text-purple-400 font-bold" id="aRepartir">0</span></div>
+                <div class="flex justify-between text-sm"><span class="text-slate-300">GANANCIA C/U:</span><span
+                        class="text-white font-bold" id="gananciaCU">0</span></div>
+                <div class="flex justify-between text-sm"><span class="text-slate-300">GANANCIA CLIENTE:</span><span
+                        class="text-white font-bold" id="gananciaCliente">0</span></div>
+                <div class="flex justify-between text-sm border-t border-slate-600 pt-2"><span
+                        class="text-slate-300 font-bold">RECIBIDO CLIENTE:</span><span
+                        class="text-green-400 font-bold text-lg" id="recibidoCliente">0</span></div>
+                <div class="flex justify-between text-sm"><span class="text-slate-300">EMPRESA JCJ & LUCRO:</span><span
+                        class="text-white font-bold" id="empresaJCJ">0</span></div>
+                <div class="flex justify-between text-sm border-t border-slate-600 pt-2"><span
+                        class="text-slate-300 font-bold">RECIBIDO EMPRESA:</span><span
+                        class="text-purple-400 font-bold text-lg" id="recibidoEmpresa">0</span></div>
+                <div class="flex justify-between items-center bg-blue-600 bg-opacity-30 rounded p-2 mt-2"><span
+                        class="text-white font-bold">A RECIBIR:</span><span class="text-yellow-300 font-bold text-xl"
+                        id="aRecibir">0</span></div>
+            </div>
+
+            <!-- Establecimiento Actual -->
+            <div class="mt-6 mb-4 border-t border-purple-500 border-opacity-30 pt-4">
+                <div class="bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg p-4 shadow-lg">
+                    <div class="flex items-center justify-between">
+                        <div class="flex-1">
+                            <p class="text-xs text-purple-100 mb-1">Establecimiento Actual</p>
+                            <h2 class="text-xl font-bold text-white">Bar Renacer</h2>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-xs text-purple-100 mb-1">Fecha</p>
+                            <p id="fechaColecta" class="text-sm font-bold text-white"></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Botones Reset y Guardar -->
+            <div class="grid grid-cols-2 gap-3">
+                <button id="btnReset"
+                    class="bg-red-600 bg-opacity-80 text-white font-semibold py-2 rounded-lg hover:bg-opacity-100 transition-all text-sm">🔄
+                    Reset</button>
+                <button id="btnSave"
+                    class="bg-gradient-to-r from-green-600 to-emerald-600 text-white font-semibold py-2 rounded-lg hover:from-green-700 hover:to-emerald-700 transition-all text-sm">💾
+                    Guardar</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+
+        // ========== SISTEMA DE NOTIFICACIONES ==========
+
+        function showNotification({
+            title = 'Notificación',
+            message = '',
+            type = 'info',
+            duration = 5000,
+            icon = null
+        } = {}) {
+
+            // Crear contenedor si no existe
+            let container = document.getElementById('notification-container');
+            if (!container) {
+                container = document.createElement('div');
+                container.id = 'notification-container';
+                container.className = 'notification-container';
+                document.body.appendChild(container);
+            }
+
+            // Mapear tipos a iconos
+            const icons = {
+                success: '✅',
+                error: '❌',
+                warning: '⚠️',
+                info: 'ℹ️'
+            };
+
+            const notificationIcon = icon || icons[type] || icons.info;
+
+            // Crear la notificación
+            const notificationId = 'notification-' + Date.now();
+            const notificationHTML = `
+        <div id="${notificationId}" class="notification notification-${type}">
+            <button class="notification-close" onclick="removeNotification('${notificationId}')">×</button>
+            <div class="notification-content">
+                <div class="notification-icon">${notificationIcon}</div>
+                <div class="notification-text">
+                    <div class="notification-title">${title}</div>
+                    <div class="notification-message">${message}</div>
+                </div>
+            </div>
+            <div class="notification-progress">
+                <div class="notification-progress-bar" style="animation: progress ${duration}ms linear forwards;"></div>
+            </div>
+        </div>
+    `;
+
+            // Agregar al contenedor
+            container.insertAdjacentHTML('afterbegin', notificationHTML);
+
+            // Mostrar con animación
+            setTimeout(() => {
+                const notification = document.getElementById(notificationId);
+                if (notification) {
+                    notification.classList.add('show');
+                }
+            }, 10);
+
+            // Auto-remover después de la duración
+            if (duration > 0) {
+                setTimeout(() => {
+                    removeNotification(notificationId);
+                }, duration);
+            }
+
+            return notificationId;
+        }
+
+        // Función para remover notificación
+        function removeNotification(id) {
+            const notification = document.getElementById(id);
+            if (notification) {
+                notification.classList.remove('show');
+                notification.classList.add('hide');
+
+                setTimeout(() => {
+                    if (notification && notification.parentNode) {
+                        notification.parentNode.removeChild(notification);
+                    }
+                }, 300);
+            }
+        }
+
+        // Función para notificación de éxito
+        function showSuccess(message, title = '¡Éxito!') {
+            return showNotification({
+                title: title,
+                message: message,
+                type: 'success',
+                duration: 4000
+            });
+        }
+
+        // Función para notificación de error
+        function showError(message, title = 'Error') {
+            return showNotification({
+                title: title,
+                message: message,
+                type: 'error',
+                duration: 5000
+            });
+        }
+
+        // Función para notificación de advertencia
+        function showWarning(message, title = 'Advertencia') {
+            return showNotification({
+                title: title,
+                message: message,
+                type: 'warning',
+                duration: 4500
+            });
+        }
+
+        // Función para notificación de información
+        function showInfo(message, title = 'Información') {
+            return showNotification({
+                title: title,
+                message: message,
+                type: 'info',
+                duration: 3500
+            });
+        }
+
+        // Agregar animación de progreso al CSS
+        const style = document.createElement('style');
+        style.textContent = `
+    @keyframes progress {
+        from { transform: scaleX(1); }
+        to { transform: scaleX(0); }
+    }
+`;
+        document.head.appendChild(style);
+
+        // Función para obtener fecha actual formateada (solo fecha)
+        function getCurrentDate() {
+            const now = new Date();
+            const options = {
+                day: 'numeric',
+                month: 'short',
+                year: 'numeric'
+            };
+            return now.toLocaleDateString('es-ES', options);
+        }
+
+        // Variables globales - SOLO UNA VEZ
+        let machineCount = 0;
+        let machines = [];
+        // ========== NUEVO SISTEMA MAS CORREGIDO ==========
+
+        // Variables para controlar el estado del botón MAS
+        let masTodasVisible = false;
+        let opcionesSeleccionadas = [];
+
+        // Función para mostrar/ocultar TODAS las opciones
+        function toggleTodasOpcionesMAS() {
+            const masTodas = document.getElementById('masTodasOpciones');
+            const masArrow = document.getElementById('masArrow');
+
+            masTodasVisible = !masTodasVisible;
+
+            if (masTodasVisible) {
+                masTodas.classList.remove('hidden');
+                masArrow.style.transform = 'rotate(180deg)';
+            } else {
+                masTodas.classList.add('hidden');
+                masArrow.style.transform = 'rotate(0deg)';
+            }
+        }
+
+
+        // ========== FUNCIONALIDAD PARA EL MODAL DE GASTOS (SOLO PARA REGISTRO, NO AFECTA CÁLCULOS) ==========
+
+        function guardarColecta() {
+            const totalEntradas = document.getElementById('totalEntradas').textContent;
+            const totalPagos = document.getElementById('totalPagos').textContent;
+            const aRecibir = document.getElementById('aRecibir').textContent;
+
+            // Simular envío a la nube
+            const estadoInput = document.getElementById('estado');
+            const estadoIcon = document.getElementById('estadoIcon');
+
+            // Mostrar estado de "enviando"
+            estadoInput.value = "Enviando a la nube...";
+            estadoInput.className = "w-full bg-blue-900 border border-blue-500 rounded-lg px-3 py-2 text-blue-300 font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50";
+            estadoIcon.textContent = "⏳";
+
+            // Hacer foco en el campo estado con animación
+            setTimeout(() => {
+                estadoInput.focus();
+                estadoInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+                // Agregar efecto visual de foco
+                estadoInput.classList.add('ring-2', 'ring-blue-500', 'ring-opacity-50');
+            }, 100);
+
+            // Simular retardo de red (2 segundos)
+            setTimeout(() => {
+                // Simular éxito (90% de probabilidad) o error (10%)
+                const exito = Math.random() > 0.1;
+
+                if (exito) {
+                    estadoInput.value = "✅ Enviado a la nube con éxito";
+                    estadoInput.className = "w-full bg-green-900 border border-green-500 rounded-lg px-3 py-2 text-green-300 font-medium focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50";
+                    estadoIcon.textContent = "✅";
+
+                    // Mantener foco por 3 segundos
+                    setTimeout(() => {
+                        estadoInput.blur();
+                        estadoInput.classList.remove('ring-2', 'ring-blue-500', 'ring-opacity-50');
+                    }, 3000);
+
+                    showSuccess(
+                        `Colecta guardada y enviada a la nube<br><br>
+                <span style="font-size: 11px; opacity: 0.8;">
+                • Total Entradas: <strong>${totalEntradas}</strong><br>
+                • Total Pagos: <strong>${totalPagos}</strong><br>
+                • A Recibir: <strong>$${aRecibir}</strong><br>
+                • Hora: ${new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}
+                </span>`,
+                        '✅ Guardado en Nube'
+                    );
+                } else {
+                    estadoInput.value = "❌ Error al enviar a la nube";
+                    estadoInput.className = "w-full bg-red-900 border border-red-500 rounded-lg px-3 py-2 text-red-300 font-medium focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50";
+                    estadoIcon.textContent = "❌";
+
+                    // Mantener foco por 3 segundos
+                    setTimeout(() => {
+                        estadoInput.blur();
+                        estadoInput.classList.remove('ring-2', 'ring-blue-500', 'ring-opacity-50');
+                    }, 3000);
+
+                    showError(
+                        `Colecta guardada localmente, pero hubo un error al enviar a la nube.<br><br>
+                <span style="font-size: 11px; opacity: 0.8;">
+                • Los datos se guardaron localmente<br>
+                • Intenta guardar nuevamente más tarde<br>
+                • Total A Recibir: <strong>$${aRecibir}</strong>
+                </span>`,
+                        '⚠️ Error de Conexión'
+                    );
+                }
+            }, 2000);
+        }
+
+        function showGastosModal() {
+            // Verificar si ya hay un modal abierto
+            if (document.getElementById('gastosModal')) {
+                return;
+            }
+
+            const modalHTML = `
+    <div id="gastosModal" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4">
+        <div class="card-glass rounded-xl p-6 max-w-md w-full">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-lg font-bold text-white">Seleccionar Tipo</h3>
+                <button id="closeGastosModal" class="text-slate-400 hover:text-white text-xl">
+                    ✕
+                </button>
+            </div>
+            
+            <!-- Paso 1: Seleccionar Tipo -->
+            <div id="pasoSeleccion" class="space-y-3">
+                <p class="text-sm text-slate-300 mb-4 text-center">¿Qué desea registrar?</p>
+                
+                <button data-tipo="gasto" class="w-full bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-700 hover:to-orange-700 text-white font-semibold py-3 rounded-lg transition-all flex items-center justify-between px-4">
+                    <span>GASTO</span>
+                    <span class="text-xs bg-red-800 px-2 py-1 rounded">Monto negativo</span>
+                </button>
+                
+                <button data-tipo="abono" class="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-semibold py-3 rounded-lg transition-all flex items-center justify-between px-4">
+                    <span>ABONO</span>
+                    <span class="text-xs bg-green-800 px-2 py-1 rounded">Monto positivo</span>
+                </button>
+                
+                <button data-tipo="deposito" class="w-full bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white font-semibold py-3 rounded-lg transition-all flex items-center justify-between px-4">
+                    <span>DEPÓSITO</span>
+                    <span class="text-xs bg-blue-800 px-2 py-1 rounded">Monto positivo</span>
+                </button>
+            </div>
+            
+            <!-- Paso 2: Formulario de GASTO (oculto inicialmente) -->
+            <div id="formGasto" class="hidden">
+                <div class="flex items-center gap-3 mb-4">
+                    <button id="volverGasto" class="text-slate-400 hover:text-white">
+                        ←
+                    </button>
+                    <h4 class="text-lg font-bold text-white">Registrar Gasto</h4>
+                </div>
+                
+                <div class="bg-gradient-to-r from-red-600 to-orange-600 rounded-lg p-4 mb-4">
+                    <div class="flex items-center justify-between mb-2">
+                        <label class="text-sm font-bold text-white">GASTO</label>
+                        <span class="text-xs text-red-100">Monto negativo</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-lg text-red-200">- $</span>
+                        <input type="number" id="gastoMonto" 
+                            class="flex-1 bg-red-800 bg-opacity-30 border border-red-400 rounded-lg px-3 py-2 text-white text-center font-bold focus:outline-none focus:border-red-300"
+                            placeholder="0.00" step="0.01" value="0" autofocus>
+                    </div>
+                </div>
+                
+                <div class="mb-4">
+                    <label class="block text-xs font-medium text-slate-300 mb-2">DESCRIPCIÓN (opcional)</label>
+                    <input type="text" id="gastoDescripcion"
+                        class="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-slate-500"
+                        placeholder="Ej: Mantenimiento, Reparación, etc.">
+                </div>
+                
+                <button id="guardarGasto" 
+                    class="w-full bg-gradient-to-r from-red-600 to-orange-600 text-white font-semibold py-3 rounded-lg hover:from-red-700 hover:to-orange-700 transition-all mt-2">
+                    💾 Guardar Gasto
+                </button>
+            </div>
+            
+            <!-- Paso 2: Formulario de ABONO (oculto inicialmente) -->
+            <div id="formAbono" class="hidden">
+                <div class="flex items-center gap-3 mb-4">
+                    <button id="volverAbono" class="text-slate-400 hover:text-white">
+                        ←
+                    </button>
+                    <h4 class="text-lg font-bold text-white">Registrar Abono</h4>
+                </div>
+                
+                <div class="bg-gradient-to-r from-green-600 to-emerald-600 rounded-lg p-4 mb-4">
+                    <div class="flex items-center justify-between mb-2">
+                        <label class="text-sm font-bold text-white">ABONO</label>
+                        <span class="text-xs text-green-100">Monto positivo</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-lg text-green-200">+ $</span>
+                        <input type="number" id="abonoMonto" 
+                            class="flex-1 bg-green-800 bg-opacity-30 border border-green-400 rounded-lg px-3 py-2 text-white text-center font-bold focus:outline-none focus:border-green-300"
+                            placeholder="0.00" step="0.01" value="0" autofocus>
+                    </div>
+                </div>
+                
+                <div class="mb-4">
+                    <label class="block text-xs font-medium text-slate-300 mb-2">DESCRIPCIÓN (opcional)</label>
+                    <input type="text" id="abonoDescripcion"
+                        class="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-slate-500"
+                        placeholder="Ej: Pago cliente, Reembolso, etc.">
+                </div>
+                
+                <button id="guardarAbono" 
+                    class="w-full bg-gradient-to-r from-green-600 to-emerald-600 text-white font-semibold py-3 rounded-lg hover:from-green-700 hover:to-emerald-700 transition-all mt-2">
+                    💾 Guardar Abono
+                </button>
+            </div>
+            
+            <!-- Paso 2: Formulario de DEPÓSITO (oculto inicialmente) -->
+            <div id="formDeposito" class="hidden">
+                <div class="flex items-center gap-3 mb-4">
+                    <button id="volverDeposito" class="text-slate-400 hover:text-white">
+                        ←
+                    </button>
+                    <h4 class="text-lg font-bold text-white">Registrar Depósito</h4>
+                </div>
+                
+                <div class="bg-gradient-to-r from-blue-600 to-cyan-600 rounded-lg p-4 mb-4">
+                    <div class="flex items-center justify-between mb-2">
+                        <label class="text-sm font-bold text-white">DEPÓSITO</label>
+                        <span class="text-xs text-blue-100">Monto positivo</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-lg text-blue-200">+ $</span>
+                        <input type="number" id="depositoMonto" 
+                            class="flex-1 bg-blue-800 bg-opacity-30 border border-blue-400 rounded-lg px-3 py-2 text-white text-center font-bold focus:outline-none focus:border-blue-300"
+                            placeholder="0.00" step="0.01" value="0" autofocus>
+                    </div>
+                </div>
+                
+                <div class="mb-4">
+                    <label class="block text-xs font-medium text-slate-300 mb-2">DESCRIPCIÓN (opcional)</label>
+                    <input type="text" id="depositoDescripcion"
+                        class="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-slate-500"
+                        placeholder="Ej: Depósito bancario, Transferencia, etc.">
+                </div>
+                
+                <button id="guardarDeposito" 
+                    class="w-full bg-gradient-to-r from-blue-600 to-cyan-600 text-white font-semibold py-3 rounded-lg hover:from-blue-700 hover:to-cyan-700 transition-all mt-2">
+                    💾 Guardar Depósito
+                </button>
+            </div>
+            
+            <!-- Información -->
+            <div class="mt-4 p-3 bg-blue-900 bg-opacity-30 rounded-lg">
+                <p class="text-xs text-blue-200 text-center">
+                    ⓘ Esta información se guardará para registro futuro. No afecta los cálculos actuales.
+                </p>
+            </div>
+        </div>
+    </div>
+    `;
+
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+
+            // Función para cambiar entre pasos
+            function mostrarFormulario(tipo) {
+                // Ocultar paso de selección
+                document.getElementById('pasoSeleccion').classList.add('hidden');
+
+                // Mostrar formulario correspondiente
+                document.getElementById(`form${tipo.charAt(0).toUpperCase() + tipo.slice(1)}`).classList.remove('hidden');
+            }
+
+            function volverASeleccion() {
+                // Ocultar todos los formularios
+                document.getElementById('formGasto').classList.add('hidden');
+                document.getElementById('formAbono').classList.add('hidden');
+                document.getElementById('formDeposito').classList.add('hidden');
+
+                // Mostrar paso de selección
+                document.getElementById('pasoSeleccion').classList.remove('hidden');
+            }
+
+            // Event listeners para botones de selección
+            document.querySelectorAll('[data-tipo]').forEach(btn => {
+                btn.addEventListener('click', function () {
+                    const tipo = this.getAttribute('data-tipo');
+                    mostrarFormulario(tipo);
+                });
+            });
+
+            // Event listeners para botones "volver"
+            document.getElementById('volverGasto').addEventListener('click', volverASeleccion);
+            document.getElementById('volverAbono').addEventListener('click', volverASeleccion);
+            document.getElementById('volverDeposito').addEventListener('click', volverASeleccion);
+
+            // Event listeners para guardar
+            document.getElementById('guardarGasto').addEventListener('click', function () {
+                guardarRegistro('gasto');
+            });
+
+            document.getElementById('guardarAbono').addEventListener('click', function () {
+                guardarRegistro('abono');
+            });
+
+            document.getElementById('guardarDeposito').addEventListener('click', function () {
+                guardarRegistro('deposito');
+            });
+
+            // Función para guardar registro
+            function guardarRegistro(tipo) {
+                const monto = parseFloat(document.getElementById(`${tipo}Monto`).value) || 0;
+                const descripcion = document.getElementById(`${tipo}Descripcion`).value;
+
+                // Validar que el monto sea mayor a 0
+                if (monto === 0) {
+                    showWarning('Por favor, ingresa un monto mayor a 0', '⚠️ Monto inválido');
+                    return;
+                }
+
+                // Crear objeto con los datos
+                const datos = {
+                    tipo: tipo,
+                    monto: monto,
+                    descripcion: descripcion,
+                    fecha: new Date().toISOString(),
+                    timestamp: Date.now()
+                };
+
+                console.log("Datos para enviar a la nube:", datos);
+
+                // Mostrar notificación de éxito
+                const tipoTexto = tipo.toUpperCase();
+                const signo = tipo === 'gasto' ? '-' : '+';
+                const icono = tipo === 'gasto' ? '💸' : tipo === 'abono' ? '💰' : '🏦';
+                const colorTipo = tipo === 'gasto' ? 'text-red-300' : tipo === 'abono' ? 'text-green-300' : 'text-blue-300';
+
+                showSuccess(
+                    `<span class="${colorTipo}">${tipoTexto}</span> registrado para envío a la nube<br><br>
+            <span style="font-size: 11px; opacity: 0.8;">
+            • Monto: <strong>${signo}$${monto.toFixed(2)}</strong><br>
+            ${descripcion ? `• Descripción: ${descripcion}<br>` : ''}
+            • Hora: ${new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}
+            </span>`,
+                    `${icono} ${tipoTexto} Guardado`
+                );
+
+                // Cerrar modal primero
+                closeGastosModal();
+
+                // Luego actualizar el campo ESTADO y hacer foco
+                setTimeout(() => {
+                    const estadoInput = document.getElementById('estado');
+                    const estadoIcon = document.getElementById('estadoIcon');
+
+                    if (estadoInput && estadoIcon) {
+                        // Actualizar el estado
+                        estadoInput.value = `📤 ${tipoTexto} enviado a la nube`;
+                        estadoInput.className = "w-full bg-purple-900 border border-purple-500 rounded-lg px-3 py-2 text-purple-300 font-medium focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-opacity-50 transition-all duration-300";
+                        estadoIcon.textContent = icono;
+
+                        // Hacer foco con efecto
+                        estadoInput.focus();
+                        estadoInput.scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'center',
+                            inline: 'nearest'
+                        });
+
+                        // Resaltar con animación
+                        estadoInput.classList.add('ring-2', 'ring-purple-500', 'ring-opacity-50');
+
+                        // Quitar foco después de 3 segundos
+                        setTimeout(() => {
+                            if (estadoInput) {
+                                estadoInput.blur();
+                                estadoInput.classList.remove('ring-2', 'ring-purple-500', 'ring-opacity-50');
+                            }
+                        }, 3000);
+                    }
+                }, 300); // Pequeño delay para que se cierre primero el modal
+            }
+
+            // Event listener para cerrar modal
+            document.getElementById('closeGastosModal').addEventListener('click', closeGastosModal);
+
+            // Cerrar modal con Escape
+            function closeModalOnEscape(e) {
+                if (e.key === 'Escape') {
+                    closeGastosModal();
+                }
+            }
+
+            document.addEventListener('keydown', closeModalOnEscape);
+
+            // Cerrar modal haciendo clic fuera
+            const modalElement = document.getElementById('gastosModal');
+            if (modalElement) {
+                modalElement.addEventListener('click', function (e) {
+                    if (e.target.id === 'gastosModal') {
+                        closeGastosModal();
+                    }
+                });
+            }
+
+        } // <--- AQUÍ FALTABA ESTE CIERRE DE LA FUNCIÓN showGastosModal()
+
+        function closeGastosModal() {
+            const modal = document.getElementById('gastosModal');
+            if (modal) {
+                modal.remove();
+            }
+        }
+        // ========== FIN FUNCIONALIDAD PARA EL MODAL DE GASTOS ==========
+
+
+        // Función para actualizar la etiqueta del botón MAS
+        function actualizarEtiquetaMAS() {
+            const masLabel = document.getElementById('masLabel');
+
+            if (opcionesSeleccionadas.length === 0) {
+                masLabel.textContent = 'MAS:';
+                masLabel.classList.remove('active');
+                document.getElementById('masSeleccionadas').classList.add('hidden');
+            } else {
+                masLabel.textContent = 'MAS: (' + opcionesSeleccionadas.length + ')';
+                masLabel.classList.add('active');
+                document.getElementById('masSeleccionadas').classList.remove('hidden');
+            }
+        }
+
+        // Función para obtener el valor actual de una opción MAS
+        function obtenerValorOpcionMAS(opcion) {
+            // Mapear si es necesario
+            const opcionesMap = {
+                'abono': 'abono',
+                'dif': 'difPorcentaje',
+                'deposito': 'deposito',
+                'pendiente': 'pendiente'
+            };
+
+            const idReal = opcionesMap[opcion] || opcion;
+            const inputOculto = document.getElementById(idReal);
+            if (inputOculto) {
+                return inputOculto.value || 0;
+            }
+            return 0;
+        }
+        // Función para renderizar las opciones seleccionadas
+        function renderizarOpcionesSeleccionadas() {
+            const contenedor = document.getElementById('masSeleccionadas');
+            contenedor.innerHTML = '';
+
+            opcionesSeleccionadas.forEach(opcion => {
+                // Mapear nombres internos a IDs reales
+                const opcionesMap = {
+                    'abono': 'abono',
+                    'dif': 'difPorcentaje',  // dif interno -> difPorcentaje en HTML
+                    'deposito': 'deposito',
+                    'pendiente': 'pendiente'
+                };
+
+                const idReal = opcionesMap[opcion];
+                const valorActual = obtenerValorOpcionMAS(idReal);
+                const nombreOpcion = opcion.toUpperCase();
+                let placeholder = '';
+
+                // Determinar placeholder según la opción
+                switch (opcion) {
+                    case 'abono': placeholder = 'Monto abono'; break;
+                    case 'dif': placeholder = 'Porcentaje DIF'; break;
+                    case 'deposito': placeholder = 'Monto depósito'; break;
+                    case 'pendiente': placeholder = 'Monto pendiente'; break;
+                }
+                const opcionHTML = `
+<div class="mas-option-selected bg-slate-800 bg-opacity-50 rounded-lg p-3 border border-purple-500 border-opacity-20 mb-2">
+    <div class="flex items-center justify-between mb-2">
+        <div class="flex items-center gap-2">
+            <span class="text-sm font-bold text-white">${nombreOpcion}</span>
+        </div>
+        <button type="button" class="text-red-400 hover:text-red-300 text-sm px-2 py-1 rounded hover:bg-red-900 hover:bg-opacity-30" data-remove-mas="${opcion}">
+            ✕ Eliminar
+        </button>
+    </div>
+    <div>
+        <input type="number" class="w-full bg-slate-700 border border-purple-500 border-opacity-30 rounded px-2 py-1.5 text-white text-center font-bold focus:outline-none focus:border-purple-500 text-sm"
+            value="${valorActual}" placeholder="${placeholder}" 
+            data-mas-opcion="${idReal}"> <!-- Usa idReal en lugar de opcion -->
+    </div>
+</div>
+`;
+                contenedor.insertAdjacentHTML('beforeend', opcionHTML);
+            });
+
+            // Agregar event listeners a los botones de eliminar
+            document.querySelectorAll('[data-remove-mas]').forEach(btn => {
+                btn.addEventListener('click', function () {
+                    const opcion = this.getAttribute('data-remove-mas');
+                    deseleccionarOpcionMAS(opcion);
+                });
+            });
+
+            // Agregar event listeners a los inputs
+            document.querySelectorAll('[data-mas-opcion]').forEach(input => {
+                input.addEventListener('input', function () {
+                    const opcion = this.getAttribute('data-mas-opcion'); // Este ya es el ID real
+                    const valor = this.value || 0;
+
+                    // Actualizar el input oculto
+                    const inputOculto = document.getElementById(opcion);
+                    if (inputOculto) {
+                        inputOculto.value = valor;
+                        console.log(`Actualizado ${opcion}:`, valor); // DEBUG
+                    }
+
+                    // Recalcular totales
+                    calculateFinalTotals();
+                });
+            });
+        }
+
+        // Función para seleccionar una opción MAS
+        function seleccionarOpcionMAS(opcion) {
+            if (!opcionesSeleccionadas.includes(opcion)) {
+                opcionesSeleccionadas.push(opcion);
+
+                // Marcar checkbox como seleccionado
+                const checkbox = document.querySelector(`.mas-option-checkbox[data-option="${opcion}"]`);
+                if (checkbox) {
+                    checkbox.checked = true;
+                }
+
+                // Ocultar panel de todas las opciones
+                document.getElementById('masTodasOpciones').classList.add('hidden');
+                masTodasVisible = false;
+                document.getElementById('masArrow').style.transform = 'rotate(0deg)';
+
+                // Actualizar interfaz
+                actualizarEtiquetaMAS();
+                renderizarOpcionesSeleccionadas();
+            }
+        }
+
+        // Función para deseleccionar una opción MAS
+        function deseleccionarOpcionMAS(opcion) {
+            opcionesSeleccionadas = opcionesSeleccionadas.filter(item => item !== opcion);
+
+            // Desmarcar checkbox
+            const checkbox = document.querySelector(`.mas-option-checkbox[data-option="${opcion}"]`);
+            if (checkbox) {
+                checkbox.checked = false;
+            }
+
+            // Mapear opción interna a ID real
+            const opcionesMap = {
+                'abono': 'abono',
+                'dif': 'difPorcentaje',
+                'deposito': 'deposito',
+                'pendiente': 'pendiente'
+            };
+
+            const idReal = opcionesMap[opcion] || opcion;
+
+            // Limpiar el valor del input oculto
+            const inputOculto = document.getElementById(idReal);
+            if (inputOculto) {
+                inputOculto.value = 0;
+            }
+
+            // Actualizar interfaz
+            actualizarEtiquetaMAS();
+            renderizarOpcionesSeleccionadas();
+
+            // Recalcular totales
+            calculateFinalTotals();
+        }
+
+        // Función para limpiar todas las opciones MAS
+        function limpiarOpcionesMAS() {
+            // Desmarcar todos los checkboxes
+            document.querySelectorAll('.mas-option-checkbox').forEach(checkbox => {
+                checkbox.checked = false;
+            });
+
+            // Limpiar valores de los inputs ocultos
+            ['abono', 'dif', 'deposito', 'pendiente'].forEach(opcion => {
+                const inputOculto = document.getElementById(opcion);
+                if (inputOculto) {
+                    inputOculto.value = 0;
+                }
+            });
+
+            // Resetear estado
+            opcionesSeleccionadas = [];
+            masTodasVisible = false;
+            document.getElementById('masTodasOpciones').classList.add('hidden');
+            document.getElementById('masArrow').style.transform = 'rotate(0deg)';
+
+            // Actualizar interfaz
+            actualizarEtiquetaMAS();
+            renderizarOpcionesSeleccionadas();
+
+            // Recalcular totales
+            calculateFinalTotals();
+        }
+
+        // Función para inicializar el sistema MAS
+        function inicializarSistemaMAS() {
+            // Crear inputs ocultos si no existen
+            const opciones = ['abono', 'dif', 'deposito', 'pendiente'];
+            opciones.forEach(opcion => {
+                if (!document.getElementById(opcion)) {
+                    const input = document.createElement('input');
+                    input.type = 'hidden';
+                    input.id = opcion;
+                    input.value = '0';
+                    document.body.appendChild(input);
+                }
+            });
+
+            // Event listener para el botón MAS principal
+            document.getElementById('btnMas').addEventListener('click', toggleTodasOpcionesMAS);
+
+            // Event listeners para los checkboxes
+            document.querySelectorAll('.mas-option-checkbox').forEach(checkbox => {
+                checkbox.addEventListener('change', function () {
+                    const opcion = this.getAttribute('data-option');
+                    if (this.checked) {
+                        seleccionarOpcionMAS(opcion);
+                    } else {
+                        deseleccionarOpcionMAS(opcion);
+                    }
+                });
+            });
+
+            // También agregar event listeners para cuando se hace clic en la etiqueta
+            document.querySelectorAll('.mas-option-group').forEach(group => {
+                group.addEventListener('click', function (e) {
+                    // Evitar que se active dos veces
+                    if (e.target.type !== 'checkbox') {
+                        const checkbox = this.querySelector('.mas-option-checkbox');
+                        if (checkbox) {
+                            checkbox.checked = !checkbox.checked;
+                            checkbox.dispatchEvent(new Event('change'));
+                        }
+                    }
+                });
+            });
+        }
+
+        // Crear inputs ocultos si no existen
+        const opciones = ['abono', 'dif', 'deposito', 'pendiente'];
+        opciones.forEach(opcion => {
+            if (!document.getElementById(opcion)) {
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.id = opcion;
+                input.value = '0';
+                document.body.appendChild(input);
+            }
+        });
+
+        // ========== FIN NUEVO SISTEMA MAS CORREGIDO ==========
+
+        function createMachineHTML(idx) {
+            return `
+            <div class="card-glass rounded-xl p-3 shadow-xl">
+                <div class="flex items-center justify-between mb-3 pb-2 border-b border-purple-500 border-opacity-20">
+                    <div class="flex items-center gap-2">
+                        <div class="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg flex items-center justify-center">
+                            <span class="text-white font-bold text-sm">#${idx + 1}</span>
+                        </div>
+                        <p class="text-sm text-purple-300 font-medium">Máquina ${idx + 1}</p>
+                    </div>
+                    <button class="text-red-400 hover:text-red-300 text-xs" data-remove="${idx}">🗑️</button>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-2 mb-3">
+                    <div><label class="block text-xs font-medium text-purple-300 mb-1">Juego</label>
+                        <input type="text" id="juego-${idx}" class="w-full bg-slate-700 border border-purple-500 border-opacity-30 rounded-lg px-2 py-1.5 text-white text-sm focus:outline-none focus:border-purple-500" placeholder="Nombre"></div>
+                    <div><label class="block text-xs font-medium text-purple-300 mb-1">Chapa</label>
+                        <input type="text" id="chapa-${idx}" class="w-full bg-slate-700 border border-purple-500 border-opacity-30 rounded-lg px-2 py-1.5 text-white text-sm focus:outline-none focus:border-purple-500" placeholder="Ig0136"></div>
+                </div>
+                
+                <div class="bg-green-500 bg-opacity-10 border border-green-500 border-opacity-30 rounded-lg p-2 mb-2">
+                    <p class="text-xs font-bold text-green-300 mb-2 text-center">📺 PANTALLA</p>
+                    <div class="grid grid-cols-2 gap-2 mb-2">
+                        <div><label class="block text-xs text-green-200 mb-1">Entrada Actual</label>
+                            <input type="number" id="epa-${idx}" class="w-full bg-slate-700 border border-green-500 border-opacity-30 rounded px-2 py-1 text-white text-center font-bold focus:outline-none focus:border-green-500" placeholder="0" data-calc="${idx}"></div>
+                        <div><label class="block text-xs text-green-200 mb-1">Salida Actual</label>
+                            <input type="number" id="spa-${idx}" class="w-full bg-slate-700 border border-green-500 border-opacity-30 rounded px-2 py-1 text-white text-center font-bold focus:outline-none focus:border-green-500" placeholder="0" data-calc="${idx}"></div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2 mb-2">
+                        <div><label class="block text-xs text-blue-200 mb-1">Entrada Anterior</label>
+                            <input type="number" id="epant-${idx}" class="w-full bg-blue-900 bg-opacity-30 border border-blue-500 border-opacity-30 rounded px-2 py-1 text-white text-center font-bold focus:outline-none focus:border-blue-500" placeholder="0" data-calc="${idx}"></div>
+                        <div><label class="block text-xs text-blue-200 mb-1">Salida Anterior</label>
+                            <input type="number" id="spant-${idx}" class="w-full bg-blue-900 bg-opacity-30 border border-blue-500 border-opacity-30 rounded px-2 py-1 text-white text-center font-bold focus:outline-none focus:border-blue-500" placeholder="0" data-calc="${idx}"></div>
+                    </div>
+                                                       <div class="grid grid-cols-4 gap-1 mb-1">
+                        <div class="bg-yellow-500 bg-opacity-20 border border-yellow-500 rounded px-1 py-0.5 text-center" id="rpe-${idx}">
+                            <p class="text-[10px] text-yellow-200">Res. Ent.</p>
+                            <p class="text-sm font-bold text-yellow-400" id="dpe-${idx}">0</p>
+                        </div>
+                        <div class="bg-yellow-500 bg-opacity-20 border border-yellow-500 rounded px-1 py-0.5 text-center" id="rps-${idx}">
+                            <p class="text-[10px] text-yellow-200">Res. Sal.</p>
+                            <p class="text-sm font-bold text-yellow-400" id="dps-${idx}">0</p>
+                        </div>
+                        <div class="bg-green-500 bg-opacity-20 border border-green-500 rounded px-1 py-0.5 text-center">
+                            <p class="text-[10px] text-green-200">Ganancia</p>
+                            <p class="text-sm font-bold text-green-400" id="ganancia-${idx}">0</p>
+                        </div>
+                        <div class="bg-blue-500 bg-opacity-20 border border-blue-500 rounded px-1 py-0.5 text-center">
+                            <p class="text-[10px] text-blue-200">% Premios</p>
+                            <p class="text-sm font-bold text-blue-400" id="porcentajePremios-${idx}">0%</p>
+                        </div>
+                    </div>
+                
+                <div class="bg-purple-500 bg-opacity-10 border border-purple-500 border-opacity-30 rounded-lg p-2 mb-2">
+                    <p class="text-xs font-bold text-purple-300 mb-2 text-center">🔧 INTERNO</p>
+                    <div class="grid grid-cols-2 gap-2 mb-2">
+                        <div><label class="block text-xs text-purple-200 mb-1">Entrada Actual</label>
+                            <input type="number" id="eia-${idx}" class="w-full bg-slate-700 border border-purple-500 border-opacity-30 rounded px-2 py-1 text-white text-center font-bold focus:outline-none focus:border-purple-500" placeholder="0" data-calc="${idx}"></div>
+                        <div><label class="block text-xs text-purple-200 mb-1">Salida Actual</label>
+                            <input type="number" id="sia-${idx}" class="w-full bg-slate-700 border border-purple-500 border-opacity-30 rounded px-2 py-1 text-white text-center font-bold focus:outline-none focus:border-purple-500" placeholder="0" data-calc="${idx}"></div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2 mb-2">
+                        <div><label class="block text-xs text-blue-200 mb-1">Entrada Anterior</label>
+                            <input type="number" id="eiant-${idx}" class="w-full bg-blue-900 bg-opacity-30 border border-blue-500 border-opacity-30 rounded px-2 py-1 text-white text-center font-bold focus:outline-none focus:border-blue-500" placeholder="0" data-calc="${idx}"></div>
+                        <div><label class="block text-xs text-blue-200 mb-1">Salida Anterior</label>
+                            <input type="number" id="siant-${idx}" class="w-full bg-blue-900 bg-opacity-30 border border-blue-500 border-opacity-30 rounded px-2 py-1 text-white text-center font-bold focus:outline-none focus:border-blue-500" placeholder="0" data-calc="${idx}"></div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2">
+                        <div class="bg-slate-600 bg-opacity-30 rounded px-2 py-1 text-center">
+                            <p class="text-xs text-slate-300">Resultado</p>
+                            <p class="text-sm font-bold text-slate-200" id="die-${idx}">0</p>
+                        </div>
+                        <div class="bg-slate-600 bg-opacity-30 rounded px-2 py-1 text-center">
+                            <p class="text-xs text-slate-300">Resultado</p>
+                            <p class="text-sm font-bold text-slate-200" id="dis-${idx}">0</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        }
+
+        // Modal para agregar máquinas
+        function showAddMachineModal() {
+            const activeMachines = machines.filter(m => document.getElementById('mw-' + m.index)).length;
+
+            const modalHTML = `
+<div id="machineModal" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-3">
+    <div class="card-glass rounded-xl p-4 w-full max-w-xs mx-auto">
+        <div class="flex items-center justify-between mb-3">
+            <h3 class="text-base font-bold text-white">➕ Agregar Máquina</h3>
+            <button id="closeMachineModal" class="text-slate-400 hover:text-white text-lg">
+                ✕
+            </button>
+        </div>
+        
+        <div class="space-y-3">
+            <!-- Info de máquinas actuales -->
+            <div class="flex justify-between items-center bg-slate-800 bg-opacity-40 rounded-lg px-3 py-2">
+                <span class="text-xs text-slate-300">Máquinas actuales:</span>
+                <span class="font-bold text-white text-sm">${activeMachines}</span>
+            </div>
+            
+            <!-- Input para cantidad -->
+            <div>
+                <label class="block text-xs font-medium text-purple-300 mb-1">
+                    ¿Total de máquinas?
+                </label>
+                <div class="flex items-center gap-2">
+                    <input type="number" id="machineTotal" 
+                        class="flex-1 bg-slate-700 border border-purple-500 border-opacity-50 rounded-lg px-3 py-2 text-white text-center font-bold focus:outline-none focus:border-purple-500"
+                        min="${activeMachines + 1}" max="20" value="${activeMachines + 1}" autofocus>
+                    <span class="text-xs text-slate-400 whitespace-nowrap">/ 20 máx</span>
+                </div>
+            </div>
+            
+            <!-- Info de agregar -->
+            <div class="bg-gradient-to-r from-blue-900/30 to-cyan-900/30 rounded-lg p-2 text-center">
+                <p class="text-xs text-slate-300">
+                    Se agregarán: <span id="machinesToAdd" class="font-bold text-green-400">1</span> máquina(s)
+                </p>
+            </div>
+        </div>
+        
+        <div class="grid grid-cols-2 gap-2 mt-4">
+            <button id="cancelModal" 
+                class="bg-slate-700 text-white font-semibold py-2 rounded-lg hover:bg-slate-600 transition-all text-xs">
+                Cancelar
+            </button>
+            <button id="confirmAdd" 
+                class="bg-gradient-to-r from-blue-600 to-cyan-600 text-white font-semibold py-2 rounded-lg hover:from-blue-700 hover:to-cyan-700 transition-all text-xs">
+                Agregar
+            </button>
+        </div>
+    </div>
+</div>
+`;
+
+            // Verificar si ya hay un modal abierto
+            if (document.getElementById('machineModal')) {
+                return;
+            }
+
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+
+            // Enfocar el input
+            setTimeout(() => {
+                const input = document.getElementById('machineTotal');
+                if (input) input.focus();
+            }, 100);
+
+            // Función para actualizar el cálculo de máquinas a agregar
+            function updateMachinesToAdd() {
+                const totalDeseado = parseInt(document.getElementById('machineTotal').value) || activeMachines + 1;
+                const maquinasAAgregar = Math.max(0, totalDeseado - activeMachines);
+                document.getElementById('machinesToAdd').textContent = maquinasAAgregar;
+            }
+
+            // Actualizar al cargar
+            updateMachinesToAdd();
+
+            // Event listener para actualizar en tiempo real
+            document.getElementById('machineTotal').addEventListener('input', updateMachinesToAdd);
+
+            // Event listeners para el modal
+            document.getElementById('closeMachineModal').addEventListener('click', function () {
+                const modal = document.getElementById('machineModal');
+                if (modal) modal.remove();
+            });
+
+            document.getElementById('cancelModal').addEventListener('click', function () {
+                const modal = document.getElementById('machineModal');
+                if (modal) modal.remove();
+            });
+
+            document.getElementById('confirmAdd').addEventListener('click', function () {
+                const totalDeseado = parseInt(document.getElementById('machineTotal').value) || activeMachines + 1;
+                const maquinasAAgregar = Math.max(0, totalDeseado - activeMachines);
+                const modal = document.getElementById('machineModal');
+                if (modal) modal.remove();
+
+                // Agregar las máquinas necesarias
+                for (let i = 0; i < maquinasAAgregar; i++) {
+                    addSingleMachine();
+                }
+            });
+
+            // Cerrar modal con Escape
+            function closeModalOnEscape(e) {
+                if (e.key === 'Escape') {
+                    const modal = document.getElementById('machineModal');
+                    if (modal) modal.remove();
+                    document.removeEventListener('keydown', closeModalOnEscape);
+                }
+            }
+
+            document.addEventListener('keydown', closeModalOnEscape);
+
+            // Cerrar modal haciendo clic fuera
+            const modalElement = document.getElementById('machineModal');
+            if (modalElement) {
+                modalElement.addEventListener('click', function (e) {
+                    if (e.target.id === 'machineModal') {
+                        this.remove();
+                        document.removeEventListener('keydown', closeModalOnEscape);
+                    }
+                });
+            }
+        }
+
+        function addSingleMachine() {
+            const c = document.getElementById('machinesContainer');
+            const d = document.createElement('div');
+            d.id = 'mw-' + machineCount;
+            d.innerHTML = createMachineHTML(machineCount);
+            c.appendChild(d);
+            machines.push({ index: machineCount });
+
+            // Agregar event listeners a los inputs de ESTA máquina específica
+            const newMachineIndex = machineCount;
+
+            // Seleccionar todos los inputs de esta máquina
+            const inputs = d.querySelectorAll('input[data-calc]');
+            inputs.forEach(input => {
+                input.addEventListener('input', function () {
+                    setTimeout(() => calc(newMachineIndex), 50);
+                });
+            });
+
+            machineCount++;
+
+            // Calcular esta máquina inmediatamente
+            setTimeout(() => calc(newMachineIndex), 100);
+
+            // Actualizar multiplicadores automáticamente
+            updateTotals();
+        }
+        function removeMachine(idx) {
+            // Crear notificación de confirmación
+            const confirmId = 'confirm-remove-' + Date.now();
+            const confirmHTML = `
+        <div id="${confirmId}" class="notification notification-warning show" style="max-width: 350px;">
+            <div class="notification-content">
+                <div class="notification-icon">🗑️</div>
+                <div class="notification-text">
+                    <div class="notification-title">¿Eliminar máquina #${idx + 1}?</div>
+                    <div class="notification-message">
+                        Esta acción eliminará la máquina y sus datos.
+                    </div>
+                    <div style="display: flex; gap: 8px; margin-top: 12px;">
+                        <button onclick="document.getElementById('${confirmId}').remove();" 
+                            class="flex-1 bg-slate-700 hover:bg-slate-600 text-white text-xs font-medium py-2 rounded-lg transition-all">
+                            Cancelar
+                        </button>
+                        <button onclick="
+                            document.getElementById('${confirmId}').remove();
+                            const machineElement = document.getElementById('mw-' + ${idx});
+                            if (machineElement) {
+                                machineElement.remove();
+                                machines = machines.filter(function (m) { return m.index !== ${idx}; });
+                                updateTotals();
+                                showInfo('Máquina #${idx + 1} eliminada', '🗑️ Eliminado');
+                            } else {
+                                console.warn('No se encontró la máquina con índice:', ${idx});
+                            }
+                        " 
+                            class="flex-1 bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-700 hover:to-orange-700 text-white text-xs font-medium py-2 rounded-lg transition-all">
+                            Sí, Eliminar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+
+            let container = document.getElementById('notification-container');
+            if (!container) {
+                container = document.createElement('div');
+                container.id = 'notification-container';
+                container.className = 'notification-container';
+                document.body.appendChild(container);
+            }
+
+            container.insertAdjacentHTML('afterbegin', confirmHTML);
+        }
+
+        function calc(i) {
+            const epa = parseFloat(document.getElementById('epa-' + i).value) || 0;
+            const spa = parseFloat(document.getElementById('spa-' + i).value) || 0;
+            const epant = parseFloat(document.getElementById('epant-' + i).value) || 0;
+            const spant = parseFloat(document.getElementById('spant-' + i).value) || 0;
+            const eia = parseFloat(document.getElementById('eia-' + i).value) || 0;
+            const sia = parseFloat(document.getElementById('sia-' + i).value) || 0;
+            const eiant = parseFloat(document.getElementById('eiant-' + i).value) || 0;
+            const siant = parseFloat(document.getElementById('siant-' + i).value) || 0;
+
+            const dpe = epa - epant;
+            const dps = spa - spant;
+            const die = eia - eiant;
+            const dis = sia - siant;
+
+            document.getElementById('dpe-' + i).textContent = dpe.toFixed(2);  // Pantalla con decimales
+            document.getElementById('dps-' + i).textContent = dps.toFixed(2);  // Pantalla con decimales
+            document.getElementById('die-' + i).textContent = Math.round(die);  // Interno sin decimales
+            document.getElementById('dis-' + i).textContent = Math.round(dis);  // Interno sin decimales
+
+            // Calcular ganancia (Entrada pantalla - Salida pantalla)
+            const ganancia = dpe - dps;
+            const gananciaElement = document.getElementById('ganancia-' + i);
+            gananciaElement.textContent = ganancia.toFixed(2);
+
+            // Cambiar color según ganancia
+            if (ganancia > 0) {
+                gananciaElement.className = 'text-sm font-bold text-green-400';
+                gananciaElement.parentElement.className = 'bg-green-500 bg-opacity-20 border border-green-500 rounded px-1 py-0.5 text-center';
+            } else if (ganancia < 0) {
+                gananciaElement.className = 'text-sm font-bold text-red-400';
+                gananciaElement.parentElement.className = 'bg-red-500 bg-opacity-20 border border-red-500 rounded px-1 py-0.5 text-center';
+            } else {
+                gananciaElement.className = 'text-sm font-bold text-yellow-400';
+                gananciaElement.parentElement.className = 'bg-yellow-500 bg-opacity-20 border border-yellow-500 rounded px-1 py-0.5 text-center';
+            }
+
+            // Calcular porcentaje de premios (Salida pantalla / Entrada pantalla * 100)
+            const porcentajeElement = document.getElementById('porcentajePremios-' + i);
+            let porcentajePremios = 0;
+            if (dpe > 0) {
+                porcentajePremios = (dps / dpe) * 100;
+            }
+            porcentajeElement.textContent = porcentajePremios.toFixed(1) + '%';
+
+            // Cambiar color según porcentaje de premios
+            if (porcentajePremios > 100) {
+                porcentajeElement.className = 'text-sm font-bold text-red-400';
+                porcentajeElement.parentElement.className = 'bg-red-500 bg-opacity-20 border border-red-500 rounded px-1 py-0.5 text-center';
+            } else if (porcentajePremios > 80) {
+                porcentajeElement.className = 'text-sm font-bold text-yellow-400';
+                porcentajeElement.parentElement.className = 'bg-yellow-500 bg-opacity-20 border border-yellow-500 rounded px-1 py-0.5 text-center';
+            } else {
+                porcentajeElement.className = 'text-sm font-bold text-blue-400';
+                porcentajeElement.parentElement.className = 'bg-blue-500 bg-opacity-20 border border-blue-500 rounded px-1 py-0.5 text-center';
+            }
+
+            validate(i, 'e', dpe, die);
+            validate(i, 's', dps, dis);
+            updateTotals();
+        }
+
+        function validate(i, t, pv, iv) {
+            const pel = document.getElementById('rp' + t + '-' + i);
+            const match = (pv === iv) || (pv * 10 === iv) || (pv === iv / 10);
+            if (match) {
+                pel.className = 'bg-green-500 border border-green-500 rounded px-2 py-1 text-center';
+                document.getElementById('dp' + t + '-' + i).className = 'text-sm font-bold text-white'; // ← CAMBIADO
+            } else if (pv !== 0 || iv !== 0) {
+                pel.className = 'bg-red-500 border border-red-500 rounded px-2 py-1 text-center';
+                document.getElementById('dp' + t + '-' + i).className = 'text-sm font-bold text-white'; // ← CAMBIADO
+            } else {
+                pel.className = 'bg-yellow-500 bg-opacity-20 border border-yellow-500 rounded px-2 py-1 text-center';
+                document.getElementById('dp' + t + '-' + i).className = 'text-sm font-bold text-yellow-400'; // ← CAMBIADO
+            }
+        }
+
+        function updateTotals() {
+            let totalE = 0;
+            let totalP = 0;
+            let activeMachines = 0;
+
+            for (var i = 0; i < machines.length; i++) {
+                var m = machines[i];
+                if (document.getElementById('mw-' + m.index)) {
+                    const dpe = parseFloat(document.getElementById('dpe-' + m.index).textContent) || 0;
+                    const dps = parseFloat(document.getElementById('dps-' + m.index).textContent) || 0;
+                    totalE += dpe;
+                    totalP += dps;
+                    activeMachines++;
+                }
+            }
+
+            document.getElementById('totalEntradas').textContent = '$' + totalE;
+            document.getElementById('totalPagos').textContent = '$' + totalP;
+
+            // Si no hay máquinas activas, resetear multiplicadores
+            if (activeMachines === 0) {
+                resetearMultiplicadorManual('multiplicadorImpuesto');
+                resetearMultiplicadorManual('multiplicadorDevolucion');
+                document.getElementById('multiplicadorImpuesto').value = 1;
+                document.getElementById('multiplicadorDevolucion').value = 1;
+            } else {
+                // Actualizar multiplicadores automáticamente (solo si no fueron modificados manualmente)
+                actualizarMultiplicadores();
+            }
+
+            // Calcular totales finales
+            calculateFinalTotals();
+        }
+        // Función para recalcular valores cuando cambia la cantidad de máquinas
+        function calcularValoresPorMaquina() {
+            const impuestoInput = document.getElementById('impuestoJCJ');
+            const devolucionInput = document.getElementById('devolucion');
+            const activeMachines = machines.filter(m => document.getElementById('mw-' + m.index)).length;
+
+            if (activeMachines > 0) {
+                // Obtener valores por máquina
+                const impuestoPorMaquina = parseFloat(impuestoInput.getAttribute('data-base-per-machine')) || 0;
+                const devolucionPorMaquina = parseFloat(devolucionInput.getAttribute('data-base-per-machine')) || 0;
+
+                // Calcular nuevos valores totales
+                const nuevoImpuestoTotal = (impuestoPorMaquina * activeMachines).toFixed(2);
+                const nuevaDevolucionTotal = (devolucionPorMaquina * activeMachines).toFixed(2);
+
+                // Actualizar los inputs
+                impuestoInput.value = nuevoImpuestoTotal;
+                devolucionInput.value = nuevaDevolucionTotal;
+            } else {
+                // Si no hay máquinas, poner en 0
+                impuestoInput.value = '0';
+                devolucionInput.value = '0';
+            }
+        }
+
+        // Función para actualizar el cálculo del impuesto
+        function calcularImpuestoTotal() {
+            const valorPorMaquina = parseFloat(document.getElementById('impuestoPorMaquina').value) || 0;
+            const multiplicador = parseFloat(document.getElementById('multiplicadorImpuesto').value) || 1;
+            const total = valorPorMaquina * multiplicador;
+
+            document.getElementById('impuestoJCJ').value = total.toFixed(2);
+            calculateFinalTotals();
+        }
+
+        // Función para actualizar el cálculo de la devolución
+        function calcularDevolucionTotal() {
+            const valorPorMaquina = parseFloat(document.getElementById('devolucionPorMaquina').value) || 0;
+            const multiplicador = parseFloat(document.getElementById('multiplicadorDevolucion').value) || 1;
+            const total = valorPorMaquina * multiplicador;
+
+            document.getElementById('devolucion').value = total.toFixed(2);
+            calculateFinalTotals();
+        }
+
+        // Función para marcar multiplicador como modificado manualmente
+        function marcarMultiplicadorManual(inputId) {
+            const input = document.getElementById(inputId);
+            input.setAttribute('data-manual', 'true');
+        }
+
+        // Función para resetear multiplicador manual
+        function resetearMultiplicadorManual(inputId) {
+            const input = document.getElementById(inputId);
+            input.removeAttribute('data-manual');
+        }
+
+        // Función para actualizar los multiplicadores con la cantidad de máquinas
+        function actualizarMultiplicadores() {
+            const activeMachines = machines.filter(m => document.getElementById('mw-' + m.index)).length || 1;
+
+            // Solo actualizar si el usuario no ha modificado manualmente
+            const multiplicadorImpuesto = document.getElementById('multiplicadorImpuesto');
+            const multiplicadorDevolucion = document.getElementById('multiplicadorDevolucion');
+
+            // Verificar si el usuario ha modificado manualmente
+            if (!multiplicadorImpuesto.hasAttribute('data-manual')) {
+                multiplicadorImpuesto.value = activeMachines;
+            }
+
+            if (!multiplicadorDevolucion.hasAttribute('data-manual')) {
+                multiplicadorDevolucion.value = activeMachines;
+            }
+
+            // Recalcular los totales
+            calcularImpuestoTotal();
+            calcularDevolucionTotal();
+        }
+
+        function calculateFinalTotals() {
+            const totalE = parseFloat(document.getElementById('totalEntradas').textContent.replace('$', '')) || 0;
+            const totalP = parseFloat(document.getElementById('totalPagos').textContent.replace('$', '')) || 0;
+            const impuesto = parseFloat(document.getElementById('impuestoJCJ').value) || 0; // ← Usa este
+            const devolucion = parseFloat(document.getElementById('devolucion').value) || 0; // ← Usa este
+            const fallas = parseFloat(document.getElementById('fallasOPruebas').value) || 0;
+            const premiosPend = parseFloat(document.getElementById('premiosPendientes').value) || 0;
+            const abono = parseFloat(document.getElementById('abono').value) || 0;
+            const difPorc = parseFloat(document.getElementById('difPorcentaje').value) || 0;
+            const deposito = parseFloat(document.getElementById('deposito').value) || 0;
+            const pendiente = parseFloat(document.getElementById('pendiente').value) || 0;
+
+            const colectado = totalE - fallas;
+            const premios = totalP + premiosPend;
+            const retencion = (totalP * 5.5) / 100;
+            const premiosNeto = premios - retencion;
+            const aRepartir = totalE - totalP - impuesto - devolucion;
+            const gananciaCU = aRepartir / 2;
+            const gananciaCliente = gananciaCU + devolucion;
+            const recibidoCliente = gananciaCU + devolucion + premiosNeto;
+            const empresaJCJ = gananciaCU + impuesto;
+            const recibidoEmpresa = gananciaCU + impuesto + retencion;
+            const aRecibir = recibidoEmpresa + abono - deposito - pendiente - difPorc;
+
+            document.getElementById('colectado').textContent = colectado.toFixed(2);
+            document.getElementById('premios').textContent = premios.toFixed(2);
+            document.getElementById('retencion').textContent = retencion.toFixed(2);
+            document.getElementById('premiosNeto').textContent = premiosNeto.toFixed(2);
+            document.getElementById('impuestoDisplay').textContent = impuesto.toFixed(2);
+            document.getElementById('devolucionDisplay').textContent = devolucion.toFixed(2);
+            document.getElementById('aRepartir').textContent = aRepartir.toFixed(2);
+            document.getElementById('gananciaCU').textContent = gananciaCU.toFixed(2);
+            document.getElementById('gananciaCliente').textContent = gananciaCliente.toFixed(2);
+            document.getElementById('recibidoCliente').textContent = recibidoCliente.toFixed(2);
+            document.getElementById('empresaJCJ').textContent = empresaJCJ.toFixed(2);
+            document.getElementById('recibidoEmpresa').textContent = recibidoEmpresa.toFixed(2);
+            document.getElementById('aRecibir').textContent = aRecibir.toFixed(2);
+
+        }
+
+        // Inicializar cuando el DOM esté cargado
+        document.addEventListener('DOMContentLoaded', function () {
+            // Inicializar multiplicadores
+            document.getElementById('multiplicadorImpuesto').value = 1;
+            document.getElementById('multiplicadorDevolucion').value = 1;
+
+            // Establecer fecha actual SOLO en la tarjeta del establecimiento
+            const fechaActual = getCurrentDate();
+            document.getElementById('fechaColecta').textContent = fechaActual;
+
+            // Inicializar con 1 máquina por defecto
+            addSingleMachine();
+
+            // Configurar event listeners
+
+            // Botón Agregar Máquina
+            document.getElementById('btnAdd').addEventListener('click', function () {
+                showAddMachineModal();
+            });
+            // Botón para Gastos/Abonos/Depósitos
+            document.getElementById('btnGastos').addEventListener('click', showGastosModal);
+
+            // Inicializar nuevo sistema MAS
+            inicializarSistemaMAS();
+
+            // ===== EVENT DELEGATION PARA INPUTS DE MÁQUINAS =====
+            document.addEventListener('input', function (e) {
+                // Verificar si el input tiene el atributo data-calc (que indica que pertenece a una máquina)
+                if (e.target.hasAttribute('data-calc')) {
+                    const machineIndex = parseInt(e.target.getAttribute('data-calc'));
+                    if (!isNaN(machineIndex)) {
+                        // Calcular para esta máquina específica
+                        calc(machineIndex);
+                    }
+                }
+            });
+
+            // También manejar eventos de cambio para inputs de máquina
+            document.getElementById('machinesContainer').addEventListener('input', function (e) {
+                if (e.target.hasAttribute('data-calc')) {
+                    const machineIndex = parseInt(e.target.getAttribute('data-calc'));
+                    if (!isNaN(machineIndex)) {
+                        setTimeout(() => calc(machineIndex), 50); // Pequeño delay para asegurar que el valor esté actualizado
+                    }
+                }
+            });
+
+            // Event delegation para eliminar máquinas (mejorado)
+            document.getElementById('machinesContainer').addEventListener('click', function (e) {
+                if (e.target.dataset.remove !== undefined) {
+                    const idx = parseInt(e.target.dataset.remove);
+                    if (!isNaN(idx)) {
+                        removeMachine(idx);
+                    }
+                }
+            });
+
+            // Asegurar que las máquinas iniciales se calculen
+            setTimeout(() => {
+                // Calcular todas las máquinas existentes
+                for (let i = 0; i < machineCount; i++) {
+                    if (document.getElementById('epa-' + i)) {
+                        calc(i);
+                    }
+                }
+            }, 300);
+
+            // ===== NUEVOS EVENT LISTENERS PARA EL SISTEMA DE MULTIPLICADORES =====
+
+            // Event listeners para Impuesto JCJ
+            document.getElementById('impuestoPorMaquina').addEventListener('input', calcularImpuestoTotal);
+
+            document.getElementById('multiplicadorImpuesto').addEventListener('input', function () {
+                marcarMultiplicadorManual('multiplicadorImpuesto');
+                calcularImpuestoTotal();
+            });
+
+            document.getElementById('multiplicadorImpuesto').addEventListener('focus', function () {
+                marcarMultiplicadorManual('multiplicadorImpuesto');
+            });
+
+            // Event listeners para Devolución
+            document.getElementById('devolucionPorMaquina').addEventListener('input', calcularDevolucionTotal);
+
+            document.getElementById('multiplicadorDevolucion').addEventListener('input', function () {
+                marcarMultiplicadorManual('multiplicadorDevolucion');
+                calcularDevolucionTotal();
+            });
+
+            document.getElementById('multiplicadorDevolucion').addEventListener('focus', function () {
+                marcarMultiplicadorManual('multiplicadorDevolucion');
+            });
+
+            // Resetear multiplicadores manuales al agregar/eliminar máquinas
+            document.getElementById('btnReset').addEventListener('click', function () {
+                resetearMultiplicadorManual('multiplicadorImpuesto');
+                resetearMultiplicadorManual('multiplicadorDevolucion');
+            });
+
+            // ===== FIN NUEVOS EVENT LISTENERS =====
+
+            // Event listeners para otros inputs (los originales, ajustados)
+            // NOTA: Ya no necesitamos estos event listeners para impuestoJCJ y devolución
+            // porque ahora se calculan automáticamente
+            document.getElementById('fallasOPruebas').addEventListener('input', calculateFinalTotals);
+            document.getElementById('premiosPendientes').addEventListener('input', calculateFinalTotals);
+            document.getElementById('abono').addEventListener('input', calculateFinalTotals);
+            document.getElementById('difPorcentaje').addEventListener('input', calculateFinalTotals);
+            document.getElementById('deposito').addEventListener('input', calculateFinalTotals);
+            document.getElementById('pendiente').addEventListener('input', calculateFinalTotals);
+
+            // Botones Reset y Guardar
+            document.getElementById('btnReset').addEventListener('click', function () {
+                if (confirm('¿Resetear todo?')) {
+                    // Limpiar opciones MAS también
+                    limpiarOpcionesMAS();
+                    location.reload();
+                }
+            });
+
+            document.getElementById('btnSave').addEventListener('click', function () {
+                // Crear notificación de confirmación
+                const confirmId = 'confirm-save-' + Date.now();
+
+                // Calcular resumen para mostrar en la confirmación
+                const totalEntradas = document.getElementById('totalEntradas').textContent;
+                const totalPagos = document.getElementById('totalPagos').textContent;
+                const aRecibir = document.getElementById('aRecibir').textContent;
+
+                const confirmHTML = `
+<div id="${confirmId}" class="notification notification-info show" style="max-width: 380px;">
+    <div class="notification-content">
+        <div class="notification-icon">💾</div>
+        <div class="notification-text">
+            <div class="notification-title">¿Guardar Colecta?</div>
+            <div class="notification-message">
+                <div style="background: rgba(30, 41, 59, 0.5); padding: 10px; border-radius: 8px; margin: 8px 0;">
+                    <div style="display: flex; justify-content: space-between; font-size: 12px;">
+                        <span style="color: #cbd5e1;">Total Entradas:</span>
+                        <span style="color: white; font-weight: bold;">${totalEntradas}</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; font-size: 12px; margin-top: 4px;">
+                        <span style="color: #cbd5e1;">Total Pagos:</span>
+                        <span style="color: white; font-weight: bold;">${totalPagos}</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; font-size: 12px; margin-top: 4px;">
+                        <span style="color: #cbd5e1;">A Recibir:</span>
+                        <span style="color: #fbbf24; font-weight: bold;">$${aRecibir}</span>
+                    </div>
+                </div>
+                <span style="font-size: 11px; color: #94a3b8;">
+                    Los datos se enviarán a la nube
+                </span>
+            </div>
+        <div style="display: flex; gap: 8px; margin-top: 12px;">
+    <button onclick="document.getElementById('${confirmId}').remove();" 
+        class="flex-1 bg-slate-700 hover:bg-slate-600 text-white text-xs font-medium py-2.5 rounded-lg transition-all flex items-center justify-center gap-1">
+        <span>✕</span> Cancelar
+    </button>
+    <button onclick="
+        document.getElementById('${confirmId}').remove();
+        guardarColecta();
+    " 
+        class="flex-1 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white text-xs font-medium py-2.5 rounded-lg transition-all flex items-center justify-center gap-1">
+        <span>💾</span> Sí, Guardar
+    </button>
+</div>
+</div>
+</div>
+</div>
+`;
+
+                let container = document.getElementById('notification-container');
+                if (!container) {
+                    container = document.createElement('div');
+                    container.id = 'notification-container';
+                    container.className = 'notification-container';
+                    document.body.appendChild(container);
+                }
+
+                container.insertAdjacentHTML('afterbegin', confirmHTML);
+            });
+
+            // Event delegation para botones eliminar máquinas
+            document.addEventListener('click', function (e) {
+                // Eliminar máquinas
+                if (e.target.dataset.remove !== undefined) {
+                    const idx = parseInt(e.target.dataset.remove);
+                    if (!isNaN(idx)) {
+                        removeMachine(idx);
+                    }
+                }
+
+                // Eliminar opciones MAS (evitar conflicto)
+                if (e.target.dataset.removeMas !== undefined) {
+                    // Este evento ya se maneja en renderizarOpcionesSeleccionadas
+                    return;
+                }
+            });
+        }); // <--- ÚNICO cierre de DOMContentLoaded
+    </script>
+</body>
+
+</html>
